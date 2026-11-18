@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This is a Symfony project. Check `composer.json` for the exact Symfony/PHP version
+Ce projet est basé sur **Symfony 8** (PHP 8.4+). Toujours se baser sur la documentation officielle de **Symfony 8** (https://symfony.com/doc/8.x/). Check `composer.json` for the exact Symfony/PHP version
 in use, and read `symfony.lock` to see which recipes ran. Don't assume Doctrine,
 Twig, API Platform, Messenger, or Lock are installed unless one of those says so.
 
@@ -75,6 +75,7 @@ Three specifics worth spelling out, because they are easy to get wrong:
 - `.env` is committed and holds defaults only. Real secrets belong in `.env.local`
   (git-ignored) or the secrets vault (`bin/console secrets:set`), read via
   `%env(...)%`.
+- **Git après chaque tâche** : Dès qu'une tâche est terminée, effectuer systématiquement un `git add` des fichiers modifiés et un `git commit` avec un message en français clair et cohérent avec les changements effectués.
 
 ## Testing
 
@@ -102,5 +103,4 @@ things up in the project instead of relying on memory:
 - `bin/console lint:container`, plus `lint:twig templates/` and
   `lint:yaml config/` where those packages are installed: validate before running.
 - Read the installed source and docblocks under `vendor/`.
-- Docs: https://symfony.com/doc/current/ (switch to the version matching
-  `composer.json` if it differs).
+- Docs: Se baser sur la documentation officielle de **Symfony 8** (https://symfony.com/doc/8.x/ ou https://symfony.com/doc/current/).
