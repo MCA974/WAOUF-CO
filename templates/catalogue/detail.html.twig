@@ -1,0 +1,254 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ article.nom }} - WAOUF & CO !{% endblock %}
+
+{% block body %}
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-xs font-bold text-gray-600 mb-6 font-fredoka">
+        <a href="{{ path('app_catalogue') }}" class="hover:underline">Accueil</a>
+        <span>➔</span>
+        <a href="{{ path('app_catalogue', {'categorie': article.categorie.urlSimplifiee}) }}" class="hover:underline">
+            {{ article.categorie.nom }}
+        </a>
+        <span>➔</span>
+        <span class="text-ink truncate">{{ article.nom }}</span>
+    </nav>
+
+    <!-- Main Detail Card -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-16">
+        
+        <!-- Left: Image & Badges -->
+        <div class="lg:col-span-6 space-y-4">
+            <div class="brutal-card bg-card overflow-hidden relative border-[3px] border-ink p-2">
+                <div class="aspect-square rounded-lg overflow-hidden border-2 border-ink relative bg-gray-100">
+                    <img 
+                        src="{{ article.image }}" 
+                        alt="{{ article.nom }}" 
+                        class="w-full h-full object-cover"
+                    >
+
+                    {% if article.badge %}
+                        <div class="absolute top-4 left-4 brutal-sticker bg-sticker text-white rotate-left text-sm font-bold shadow-brutal">
+                            {{ article.badge }}
+                        </div>
+                    {% endif %}
+
+                    <div class="absolute bottom-4 right-4 brutal-badge text-ink shadow-[2px_2px_0px_#121212]" style="background-color: {{ article.categorie.couleurHex }};">
+                        {{ article.categorie.nom }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reassurance Icons -->
+            <div class="grid grid-cols-3 gap-3 text-center">
+                <div class="brutal-card bg-white p-3 border-2 border-ink">
+                    <div class="text-2xl mb-1">⚡</div>
+                    <span class="text-[11px] font-bold block font-fredoka">Expédition 48h</span>
+                </div>
+                <div class="brutal-card bg-white p-3 border-2 border-ink">
+                    <div class="text-2xl mb-1">🔒</div>
+                    <span class="text-[11px] font-bold block font-fredoka">Paiement Sécurisé</span>
+                </div>
+                <div class="brutal-card bg-white p-3 border-2 border-ink">
+                    <div class="text-2xl mb-1">🐾</div>
+                    <span class="text-[11px] font-bold block font-fredoka">100% Bonheur</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Information & Cart Form -->
+        <div class="lg:col-span-6 space-y-6">
+            
+            <div class="brutal-card bg-card p-6 sm:p-8 border-[3px] border-ink space-y-6">
+                
+                <!-- Category and Title -->
+                <div>
+                    <span class="inline-block text-xs font-bold font-fredoka uppercase px-2.5 py-1 rounded-full border border-ink mb-2" style="background-color: {{ article.categorie.couleurHex }};">
+                        {{ article.categorie.nom }}
+                    </span>
+                    <h1 class="text-3xl sm:text-4xl font-extrabold text-ink font-fredoka leading-tight">
+                        {{ article.nom }}
+                    </h1>
+                </div>
+
+                <!-- Price & Stock badge -->
+                <div class="flex items-center justify-between border-y-2 border-dashed border-gray-200 py-4">
+                    <div>
+                        <span class="text-xs font-bold text-gray-500 uppercase block font-fredoka">
+                            {% if article.animal %}Frais d'adoption associatifs{% else %}Prix TTC{% endif %}
+                        </span>
+                        <span class="price-tag text-3xl sm:text-4xl font-bold text-animaux">
+                            {{ article.prix|prix_euro }}
+                        </span>
+                    </div>
+
+                    <div>
+                        {% if article.animal %}
+                            <span class="brutal-sticker bg-animaux text-white rotate-right text-xs">
+                                🐾 1 seul foyer possible
+                            </span>
+                        {% elseif article.stock > 0 %}
+                            <span class="brutal-badge bg-green-100 text-green-800 border-green-700 text-xs">
+                                En stock ({{ article.stock }} restants)
+                            </span>
+                        {% else %}
+                            <span class="brutal-badge bg-red-100 text-red-800 border-red-700 text-xs">
+                                Rupture de stock
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div>
+                    <h4 class="font-fredoka font-bold text-sm uppercase text-gray-700 mb-2">À propos de ce trésor</h4>
+                    <p class="text-base text-gray-700 font-medium leading-relaxed">
+                        {{ article.description }}
+                    </p>
+                </div>
+
+                <!-- Form Add to Cart -->
+                <form action="{{ path('app_panier_ajouter', {'id': article.id}) }}" method="POST" class="space-y-4 pt-2">
+                    
+                    <!-- Options (Sizes/Colors) if available -->
+                    {% if article.options and article.options|length > 0 %}
+                        <div>
+                            <label for="option-select" class="block font-fredoka font-bold text-xs uppercase text-gray-700 mb-1.5">
+                                Choisissez votre option / taille :
+                            </label>
+                            <select id="option-select" name="option" class="brutal-input text-sm cursor-pointer">
+                                {% for opt in article.options %}
+                                    <option value="{{ opt }}">{{ opt }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    {% endif %}
+
+                    <!-- Quantity selection (disabled if animal) -->
+                    {% if not article.animal %}
+                        <div>
+                            <label for="qte-input" class="block font-fredoka font-bold text-xs uppercase text-gray-700 mb-1.5">
+                                Quantité désirée :
+                            </label>
+                            <input 
+                                id="qte-input" 
+                                type="number" 
+                                name="quantite" 
+                                value="1" 
+                                min="1" 
+                                max="{{ article.stock }}" 
+                                class="brutal-input text-sm w-28"
+                            >
+                        </div>
+                    {% endif %}
+
+                    <!-- Submit Button -->
+                    {% if article.animal %}
+                        <button type="submit" class="brutal-btn brutal-btn-primary w-full py-4 text-lg shadow-brutal-hover">
+                            🐾 Déposer un dossier d'adoption ({{ article.prix|prix_euro }})
+                        </button>
+                    {% elseif article.stock > 0 %}
+                        <button type="submit" class="brutal-btn brutal-btn-mint w-full py-4 text-lg shadow-brutal-hover">
+                            🛒 Ajouter au Panier ({{ article.prix|prix_euro }})
+                        </button>
+                    {% else %}
+                        <button type="button" disabled class="brutal-btn bg-gray-200 text-gray-400 cursor-not-allowed w-full py-4 text-base">
+                            Victime de son succès (Rupture)
+                        </button>
+                    {% endif %}
+                </form>
+
+            </div>
+
+            <!-- ENCART CARNET DE SANTÉ VÉTÉRINAIRE POP NÉO-BRUTALISTE (SI ANIMAL) -->
+            {% if article.animal %}
+                {% set animal = article.animal %}
+                <div class="brutal-card bg-white border-[3px] border-ink p-6 sm:p-8 space-y-4 relative overflow-hidden">
+                    <div class="flex items-center justify-between border-b-2 border-ink pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="text-3xl">🩺</span>
+                            <div>
+                                <h3 class="font-fredoka text-xl font-bold text-ink">Carnet de Santé Vétérinaire</h3>
+                                <p class="text-xs font-semibold text-gray-600">Dossier médical certifié I-CAD & Ordre Vétérinaire</p>
+                            </div>
+                        </div>
+                        <span class="brutal-sticker bg-alimentation text-ink rotate-right text-xs">
+                            VÉRIFIÉ ✅
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 text-sm">
+                        <div class="bg-gray-50 border-2 border-ink rounded-lg p-2.5">
+                            <span class="text-xs font-bold text-gray-500 uppercase block font-fredoka">Espèce & Race</span>
+                            <strong class="text-ink font-fredoka">{{ animal.espece }} • {{ animal.race }}</strong>
+                        </div>
+                        <div class="bg-gray-50 border-2 border-ink rounded-lg p-2.5">
+                            <span class="text-xs font-bold text-gray-500 uppercase block font-fredoka">Sexe & Stérilisation</span>
+                            <strong class="text-ink font-fredoka">
+                                {{ animal.sexe }} • {% if animal.sterilise %}Stérilisé(e) ✅{% else %}Non stérilisé(e){% endif %}
+                            </strong>
+                        </div>
+                        <div class="bg-gray-50 border-2 border-ink rounded-lg p-2.5">
+                            <span class="text-xs font-bold text-gray-500 uppercase block font-fredoka">Date de naissance & Âge</span>
+                            <strong class="text-ink font-fredoka">
+                                {{ animal.dateNaissance|date('d/m/Y') }} ({{ animal.age }})
+                            </strong>
+                        </div>
+                        <div class="bg-gray-50 border-2 border-ink rounded-lg p-2.5">
+                            <span class="text-xs font-bold text-gray-500 uppercase block font-fredoka">Numéro de Puce I-CAD</span>
+                            <strong class="text-ink font-mono tracking-wider">{{ animal.numeroPuce }}</strong>
+                        </div>
+                    </div>
+
+                    <!-- Vaccin status -->
+                    <div class="flex items-center gap-3 bg-loisirs border-2 border-ink rounded-lg p-3 font-fredoka text-sm">
+                        <span class="text-2xl">💉</span>
+                        <div>
+                            <strong>Statut vaccinal : À jour</strong>
+                            <p class="text-xs text-gray-700">Vaccins primaires effectués (CHPPi, Rage, Leucose selon espèce).</p>
+                        </div>
+                    </div>
+
+                    <!-- Legal engagement reminder -->
+                    <div class="bg-card border-2 border-dashed border-animaux rounded-lg p-3 text-xs text-gray-700 font-medium">
+                        📜 <strong>Engagement responsable :</strong> Conformément à la législation en vigueur, un certificat d'engagement et de connaissance sera signé lors de la finalisation de votre dossier d'adoption.
+                    </div>
+                </div>
+            {% endif %}
+
+        </div>
+
+    </div>
+
+    <!-- Similar Items -->
+    {% if similaires|length > 0 %}
+        <section class="border-t-[3px] border-ink pt-12">
+            <h3 class="font-fredoka text-2xl font-bold mb-6 flex items-center gap-2">
+                <span>✨</span> Vous aimerez aussi dans la catégorie {{ article.categorie.nom }}
+            </h3>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                {% for item in similaires %}
+                    <div class="brutal-card bg-card flex flex-col justify-between overflow-hidden">
+                        <div class="aspect-video bg-gray-100 border-b-[2px] border-ink overflow-hidden">
+                            <img src="{{ item.image }}" alt="{{ item.nom }}" class="w-full h-full object-cover">
+                        </div>
+                        <div class="p-4 space-y-2">
+                            <h4 class="font-fredoka font-bold text-base truncate">
+                                <a href="{{ path('app_article_detail', {'urlSimplifiee': item.urlSimplifiee}) }}">
+                                    {{ item.nom }}
+                                </a>
+                            </h4>
+                            <div class="flex items-center justify-between pt-2">
+                                <span class="price-tag font-bold text-lg">{{ item.prix|prix_euro }}</span>
+                                <a href="{{ path('app_article_detail', {'urlSimplifiee': item.urlSimplifiee}) }}" class="brutal-btn brutal-btn-white py-1 px-2.5 text-xs">
+                                    Voir ➔
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+{% endblock %}

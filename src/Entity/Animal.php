@@ -15,27 +15,28 @@ class Animal
     private ?int $id = null;
 
     #[ORM\Column(length: 50)]
-    private ?string $espece = null;
+    private ?string $espece = null; // Chien, Chat, Lapin, Oiseau
 
-    #[ORM\Column(length: 100, nullable: true)]
+    #[ORM\Column(length: 100)]
     private ?string $race = null;
 
     #[ORM\Column(length: 20)]
-    private ?string $sexe = null;
+    private ?string $sexe = null; // Mâle, Femelle
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
     private ?\DateTime $dateNaissance = null;
 
-    #[ORM\Column(length: 30, nullable: true)]
+    #[ORM\Column(length: 30, unique: true)]
     private ?string $numeroPuce = null;
 
     #[ORM\Column]
-    private ?bool $vaccin = null;
+    private bool $vaccine = true;
 
     #[ORM\Column]
-    private ?bool $sterilise = null;
+    private bool $sterilise = true;
 
-    #[ORM\OneToOne(mappedBy: 'animal')]
+    #[ORM\OneToOne(inversedBy: 'animal')]
+    #[ORM\JoinColumn(nullable: false)]
     private ?Article $article = null;
 
     public function getId(): ?int
@@ -60,7 +61,7 @@ class Animal
         return $this->race;
     }
 
-    public function setRace(?string $race): static
+    public function setRace(string $race): static
     {
         $this->race = $race;
 
@@ -96,26 +97,26 @@ class Animal
         return $this->numeroPuce;
     }
 
-    public function setNumeroPuce(?string $numeroPuce): static
+    public function setNumeroPuce(string $numeroPuce): static
     {
         $this->numeroPuce = $numeroPuce;
 
         return $this;
     }
 
-    public function isVaccin(): ?bool
+    public function isVaccine(): bool
     {
-        return $this->vaccin;
+        return $this->vaccine;
     }
 
-    public function setVaccin(bool $vaccin): static
+    public function setVaccine(bool $vaccine): static
     {
-        $this->vaccin = $vaccin;
+        $this->vaccine = $vaccine;
 
         return $this;
     }
 
-    public function isSterilise(): ?bool
+    public function isSterilise(): bool
     {
         return $this->sterilise;
     }
@@ -134,18 +135,29 @@ class Animal
 
     public function setArticle(?Article $article): static
     {
-        // unset the owning side of the relationship if necessary
-        if ($article === null && $this->article !== null) {
-            $this->article->setAnimal(null);
-        }
-
-        // set the owning side of the relationship if necessary
-        if ($article !== null && $article->getAnimal() !== $this) {
-            $article->setAnimal($this);
-        }
-
         $this->article = $article;
 
         return $this;
+    }
+
+    public function getAge(): string
+    {
+        if (!$this->dateNaissance) {
+            return '';
+        }
+
+        $now = new \DateTime();
+        $diff = $now->diff($this->dateNaissance);
+
+        if ($diff->y > 0) {
+            return $diff->y . ' an' . ($diff->y > 1 ? 's' : '') . ($diff->m > 0 ? ' et ' . $diff->m . ' mois' : '');
+        }
+
+        return $diff->m . ' mois';
+    }
+
+    public function __toString(): string
+    {
+        return sprintf('%s (%s)', $this->race, $this->espece);
     }
 }

@@ -1,0 +1,162 @@
+{% if elements|length == 0 %}
+    <div class="text-center py-12 space-y-4">
+        <div class="text-6xl animate-bounce">🛒</div>
+        <h4 class="font-fredoka text-xl font-bold">Votre panier est tout vide !</h4>
+        <p class="text-sm text-gray-600 font-medium">Nos boules de poils et accessoires n'attendent que vous.</p>
+        <a href="{{ path('app_catalogue') }}" onclick="document.getElementById('cart-drawer-overlay').click()" class="brutal-btn brutal-btn-yellow inline-block text-sm">
+            Découvrir la boutique
+        </a>
+    </div>
+{% else %}
+    <!-- Free Shipping Progress Bar -->
+    <div class="brutal-card bg-white p-3.5 mb-4 border-[3px] border-ink">
+        {% if totaux.fraisPortOfferts %}
+            <div class="flex items-center gap-2 text-xs font-bold text-ink font-fredoka">
+                <span class="text-lg">🎉</span>
+                <span>FÉLICITATIONS ! Livraison offerte sur cette commande !</span>
+            </div>
+            <div class="w-full bg-gray-200 h-3 border-2 border-ink rounded-full mt-2 overflow-hidden">
+                <div class="bg-alimentation h-full w-full"></div>
+            </div>
+        {% else %}
+            <div class="flex items-center justify-between text-xs font-bold font-fredoka mb-1.5">
+                <span>🚚 Plus que <strong>{{ totaux.restePourPortOffert|prix_euro }}</strong> pour la livraison offerte !</span>
+            </div>
+            {% set pct = min(100, ((totaux.sousTotalTTC / 5000) * 100)|round) %}
+            <div class="w-full bg-gray-200 h-3 border-2 border-ink rounded-full overflow-hidden">
+                <div class="bg-loisirs h-full transition-all duration-300" style="width: {{ pct }}%;"></div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Items List -->
+    <div class="space-y-3 mb-6">
+        {% for item in elements %}
+            <div class="brutal-card bg-white p-3 flex gap-3 items-center relative border-[2.5px] border-ink">
+                <!-- Image -->
+                <div class="w-16 h-16 rounded-lg border-2 border-ink overflow-hidden flex-shrink-0 bg-gray-100">
+                    <img src="{{ item.article.image }}" alt="{{ item.article.nom }}" class="w-full h-full object-cover">
+                </div>
+
+                <!-- Info -->
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-start justify-between gap-1">
+                        <h4 class="font-fredoka font-bold text-sm truncate text-ink">
+                            {{ item.article.nom }}
+                        </h4>
+                        <a href="{{ path('app_panier_supprimer', {'cle': item.cle}) }}" class="text-gray-400 hover:text-animaux text-sm font-bold ml-1">
+                            ✕
+                        </a>
+                    </div>
+
+                    {% if item.option %}
+                        <span class="inline-block text-[11px] font-bold bg-gray-100 border border-ink px-1.5 py-0.5 rounded text-gray-700 mt-0.5">
+                            Option : {{ item.option }}
+                        </span>
+                    {% endif %}
+
+                    {% if item.isAnimal %}
+                        <span class="inline-block text-[11px] font-bold bg-animaux text-white border border-ink px-1.5 py-0.5 rounded mt-0.5">
+                            🐾 Adoption (1 max)
+                        </span>
+                    {% endif %}
+
+                    <div class="flex items-center justify-between mt-2">
+                        <!-- Quantity Controller -->
+                        {% if item.isAnimal %}
+                            <span class="text-xs font-bold font-fredoka bg-gray-100 border border-ink px-2 py-0.5 rounded">
+                                Qté : 1
+                            </span>
+                        {% else %}
+                            <div class="inline-flex items-center border-2 border-ink rounded-lg bg-gray-50 overflow-hidden">
+                                <a href="{{ path('app_panier_diminuer', {'cle': item.cle}) }}" class="px-2 py-0.5 font-bold hover:bg-gray-200 text-xs">
+                                    -
+                                </a>
+                                <span class="px-2 py-0.5 text-xs font-bold font-fredoka bg-white">
+                                    {{ item.quantite }}
+                                </span>
+                                <a href="{{ path('app_panier_ajouter', {'id': item.article.id, 'option': item.option}) }}" class="px-2 py-0.5 font-bold hover:bg-gray-200 text-xs">
+                                    +
+                                </a>
+                            </div>
+                        {% endif %}
+
+                        <span class="font-fredoka font-bold text-sm text-ink">
+                            {{ item.totalLigne|prix_euro }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Promo code form -->
+    <div class="brutal-card bg-white p-3 mb-4 border-[2.5px] border-ink">
+        <form action="{{ path('app_panier_promo') }}" method="POST" class="flex gap-2">
+            <input 
+                type="text" 
+                name="code_promo" 
+                value="{{ totaux.codePromo }}"
+                placeholder="Code promo (ex: WAOUF10)" 
+                class="brutal-input text-xs py-1.5 px-2 flex-1 uppercase"
+                {% if totaux.codePromo %}disabled{% endif %}
+            >
+            {% if totaux.codePromo %}
+                <a href="{{ path('app_panier_promo_retirer') }}" class="brutal-btn brutal-btn-white text-xs py-1 px-2.5">
+                    Retirer
+                </a>
+            {% else %}
+                <button type="submit" class="brutal-btn brutal-btn-yellow text-xs py-1 px-3">
+                    OK
+                </button>
+            {% endif %}
+        </form>
+        {% if totaux.codePromo %}
+            <p class="text-[11px] font-bold text-green-700 mt-1 font-fredoka">
+                ✅ Code {{ totaux.codePromo }} actif (-10%)
+            </p>
+        {% endif %}
+    </div>
+
+    <!-- Totals Breakdown -->
+    <div class="brutal-card bg-white p-4 space-y-2 mb-6 border-[3px] border-ink text-sm font-semibold">
+        <div class="flex justify-between text-gray-600">
+            <span>Sous-total TTC</span>
+            <span>{{ totaux.sousTotalTTC|prix_euro }}</span>
+        </div>
+
+        {% if totaux.montantRemise > 0 %}
+            <div class="flex justify-between text-animaux font-bold">
+                <span>Remise (-10%)</span>
+                <span>-{{ totaux.montantRemise|prix_euro }}</span>
+            </div>
+        {% endif %}
+
+        <div class="flex justify-between text-gray-600">
+            <span>Frais de port</span>
+            <span>
+                {% if totaux.fraisPort == 0 %}
+                    <strong class="text-green-600 font-bold uppercase text-xs bg-green-100 border border-green-400 px-1.5 py-0.5 rounded">Offerts</strong>
+                {% else %}
+                    {{ totaux.fraisPort|prix_euro }}
+                {% endif %}
+            </span>
+        </div>
+
+        <div class="border-t-2 border-dashed border-ink pt-2 flex justify-between items-baseline font-fredoka text-lg font-bold text-ink">
+            <span>TOTAL TTC</span>
+            <span class="text-2xl text-animaux">{{ totaux.totalTTC|prix_euro }}</span>
+        </div>
+        <p class="text-[10px] text-gray-500 text-right">Dont TVA (20%) : {{ totaux.tva|prix_euro }}</p>
+    </div>
+
+    <!-- Checkout Action -->
+    <div class="space-y-2">
+        <a href="{{ path('app_commande_valider') }}" class="brutal-btn brutal-btn-primary w-full py-3.5 text-center text-lg block shadow-brutal-hover">
+            🐾 Passer la commande ➔
+        </a>
+        <a href="{{ path('app_panier') }}" class="brutal-btn brutal-btn-white w-full py-2 text-center text-sm block">
+            Voir le panier complet
+        </a>
+    </div>
+{% endif %}

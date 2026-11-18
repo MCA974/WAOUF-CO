@@ -1,0 +1,152 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon Compte - WAOUF & CO !{% endblock %}
+
+{% block body %}
+    <div class="max-w-5xl mx-auto space-y-8">
+        
+        <!-- Header Profile Card -->
+        <div class="brutal-card bg-fashion p-6 sm:p-8 border-[3px] border-ink flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+            <div class="flex items-center gap-4">
+                <div class="w-16 h-16 bg-card border-[3px] border-ink rounded-2xl shadow-brutal flex items-center justify-center text-3xl">
+                    🐶
+                </div>
+                <div>
+                    <span class="brutal-sticker bg-loisirs text-ink rotate-left text-xs mb-1">
+                        Membre de la Meute
+                    </span>
+                    <h1 class="font-fredoka text-2xl sm:text-3xl font-extrabold text-ink">
+                        Bonjour, {{ user.prenom }} {{ user.nom }} !
+                    </h1>
+                    <p class="text-xs font-semibold text-gray-800">
+                        {{ user.email }} • {{ user.telephone }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                {% if is_granted('ROLE_ADMIN') %}
+                    <a href="{{ path('app_admin_dashboard') }}" class="brutal-btn brutal-btn-yellow text-xs py-2 px-3">
+                        ⚡ Tableau de bord Admin
+                    </a>
+                {% endif %}
+                <a href="{{ path('app_logout') }}" class="brutal-btn brutal-btn-white text-xs py-2 px-3">
+                    Déconnexion
+                </a>
+            </div>
+        </div>
+
+        <!-- Adoptions Section if any -->
+        {% if adoptions|length > 0 %}
+            <section class="space-y-4">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl">❤️</span>
+                    <h2 class="font-fredoka text-2xl font-bold text-ink">Mes Adoptions de Cœur ({{ adoptions|length }})</h2>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% for adopt in adoptions %}
+                        {% set animal = adopt.animal %}
+                        <div class="brutal-card bg-card p-5 border-[3px] border-ink flex gap-4 items-center">
+                            <div class="w-20 h-20 rounded-lg border-2 border-ink overflow-hidden flex-shrink-0 bg-gray-100">
+                                <img src="{{ adopt.ligne.article.image }}" alt="{{ adopt.ligne.article.nom }}" class="w-full h-full object-cover">
+                            </div>
+                            <div class="flex-1 space-y-1">
+                                <div class="flex items-center justify-between">
+                                    <h4 class="font-fredoka font-bold text-base text-ink">{{ adopt.ligne.article.nom }}</h4>
+                                    <span class="brutal-badge bg-animaux text-white text-[10px]">
+                                        {{ adopt.commande.statut }}
+                                    </span>
+                                </div>
+                                <p class="text-xs text-gray-600 font-medium">
+                                    {{ animal.espece }} • {{ animal.race }} • {{ animal.sexe }}
+                                </p>
+                                <p class="text-[11px] font-mono text-gray-500">
+                                    Puce I-CAD : {{ animal.numeroPuce }}
+                                </p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </section>
+        {% endif %}
+
+        <!-- Orders History -->
+        <section class="space-y-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl">📦</span>
+                    <h2 class="font-fredoka text-2xl font-bold text-ink">Historique de vos commandes</h2>
+                </div>
+                <span class="text-xs font-bold text-gray-500 font-fredoka">
+                    {{ commandes|length }} commande{% if commandes|length > 1 %}s{% endif %}
+                </span>
+            </div>
+
+            {% if commandes|length == 0 %}
+                <div class="brutal-card bg-card p-8 text-center space-y-3">
+                    <p class="font-fredoka text-lg font-bold text-gray-700">Vous n'avez pas encore passé de commande.</p>
+                    <a href="{{ path('app_catalogue') }}" class="brutal-btn brutal-btn-yellow inline-block text-xs py-2 px-4">
+                        Découvrir les produits ➔
+                    </a>
+                </div>
+            {% else %}
+                <div class="space-y-4">
+                    {% for cmd in commandes %}
+                        <div class="brutal-card bg-card p-5 sm:p-6 border-[3px] border-ink space-y-4">
+                            
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b-2 border-gray-100 pb-3">
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <h3 class="font-fredoka font-extrabold text-lg text-ink">{{ cmd.reference }}</h3>
+                                        <span class="text-xs text-gray-500 font-semibold">• {{ cmd.dateCreation|date('d/m/Y à H:i') }}</span>
+                                    </div>
+                                    <p class="text-xs text-gray-600 mt-0.5 truncate max-w-md">Livraison : {{ cmd.adresseLivraison }}</p>
+                                </div>
+
+                                <div class="flex items-center gap-3">
+                                    {% if cmd.statut == 'VALIDATION_ADOPTION' %}
+                                        <span class="brutal-sticker bg-animaux text-white text-xs">
+                                            🐾 VALIDATION ADOPTION
+                                        </span>
+                                    {% elseif cmd.statut == 'PAYEE' %}
+                                        <span class="brutal-sticker bg-alimentation text-ink text-xs">
+                                            ✅ PAYÉE
+                                        </span>
+                                    {% elseif cmd.statut == 'EXPEDIEE' %}
+                                        <span class="brutal-sticker bg-fashion text-ink text-xs">
+                                            🚚 EXPÉDIÉE
+                                        </span>
+                                    {% else %}
+                                        <span class="brutal-sticker bg-sticker text-white text-xs">
+                                            {{ cmd.statut }}
+                                        </span>
+                                    {% endif %}
+
+                                    <span class="font-fredoka font-bold text-lg text-ink">
+                                        {{ cmd.montantTotalEnEuros|number_format(2, ',', ' ') }} €
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Lines in order -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-xs">
+                                {% for ligne in cmd.lignes %}
+                                    <div class="bg-gray-50 border border-ink rounded-lg p-2 flex items-center justify-between">
+                                        <span class="truncate">
+                                            <strong>{{ ligne.quantite }}x</strong> {{ ligne.article.nom }}
+                                            {% if ligne.optionChoisie %}<span class="text-gray-500">({{ ligne.optionChoisie }})</span>{% endif %}
+                                        </span>
+                                        <span class="font-bold ml-2 whitespace-nowrap">{{ ligne.totalEnEuros|number_format(2, ',', ' ') }} €</span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </section>
+
+    </div>
+{% endblock %}

@@ -1,0 +1,97 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des Articles - Admin WAOUF & CO !{% endblock %}
+
+{% block body %}
+    <div class="space-y-6">
+        
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b-[3px] border-ink pb-4">
+            <div>
+                <a href="{{ path('app_admin_dashboard') }}" class="text-xs font-bold text-gray-500 hover:underline">← Retour Dashboard</a>
+                <h1 class="font-fredoka text-3xl font-extrabold text-ink">Gestion des Articles & Animaux</h1>
+            </div>
+
+            <a href="{{ path('app_admin_article_new') }}" class="brutal-btn brutal-btn-primary text-sm py-2 px-4 shadow-brutal-hover">
+                ➕ Nouvel Article / Fiche Animal
+            </a>
+        </div>
+
+        <div class="brutal-card bg-card border-[3px] border-ink overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+                <thead>
+                    <tr class="bg-gray-100 border-b-2 border-ink font-fredoka font-bold text-xs uppercase text-gray-700">
+                        <th class="p-3.5">Image</th>
+                        <th class="p-3.5">Nom du produit / Animal</th>
+                        <th class="p-3.5">Catégorie</th>
+                        <th class="p-3.5">Prix</th>
+                        <th class="p-3.5">Stock</th>
+                        <th class="p-3.5">Badge</th>
+                        <th class="p-3.5 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y border-ink">
+                    {% for art in articles %}
+                        <tr class="hover:bg-yellow-50/50 transition-colors">
+                            <td class="p-3">
+                                <img src="{{ art.image }}" alt="" class="w-12 h-12 rounded border-2 border-ink object-cover bg-gray-100">
+                            </td>
+                            <td class="p-3">
+                                <strong class="font-fredoka text-base text-ink block">{{ art.nom }}</strong>
+                                {% if art.animal %}
+                                    <span class="inline-block text-[10px] font-bold bg-animaux text-white px-1.5 py-0.2 rounded border border-ink">
+                                        🐾 Animal (Puce: {{ art.animal.numeroPuce }})
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="p-3">
+                                <span class="brutal-badge text-xs" style="background-color: {{ art.categorie.couleurHex }};">
+                                    {{ art.categorie.nom }}
+                                </span>
+                            </td>
+                            <td class="p-3 font-fredoka font-bold text-base">
+                                {{ art.prix|prix_euro }}
+                            </td>
+                            <td class="p-3">
+                                {% if art.stock > 0 %}
+                                    <span class="font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded border border-green-300 text-xs">
+                                        {{ art.stock }}
+                                    </span>
+                                {% else %}
+                                    <span class="font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded border border-red-300 text-xs">
+                                        Épuisé
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="p-3">
+                                {% if art.badge %}
+                                    <span class="brutal-sticker text-[10px] py-0.5 px-2 bg-yellow-200">
+                                        {{ art.badge }}
+                                    </span>
+                                {% else %}
+                                    <span class="text-gray-400 text-xs">-</span>
+                                {% endif %}
+                            </td>
+                            <td class="p-3 text-right">
+                                <div class="inline-flex items-center gap-1.5">
+                                    <a href="{{ path('app_article_detail', {'urlSimplifiee': art.urlSimplifiee}) }}" target="_blank" class="brutal-btn brutal-btn-white py-1 px-2 text-xs" title="Voir sur le site">
+                                        👁️
+                                    </a>
+                                    <a href="{{ path('app_admin_article_edit', {'id': art.id}) }}" class="brutal-btn brutal-btn-yellow py-1 px-2 text-xs" title="Modifier">
+                                        ✏️
+                                    </a>
+                                    <form action="{{ path('app_admin_article_delete', {'id': art.id}) }}" method="POST" onsubmit="return confirm('Supprimer cet article définitivement ?');" class="inline">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete_article_' ~ art.id) }}">
+                                        <button type="submit" class="brutal-btn brutal-btn-primary py-1 px-2 text-xs" title="Supprimer">
+                                            🗑️
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+{% endblock %}

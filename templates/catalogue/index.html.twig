@@ -1,0 +1,256 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}WAOUF & CO ! - L'animalerie la plus WOUAF du web !{% endblock %}
+
+{% block body %}
+    <!-- Hero Banner Pop Néo-Brutaliste -->
+    <section class="brutal-card bg-loisirs p-6 sm:p-10 mb-10 relative overflow-hidden">
+        <!-- Floating Stickers -->
+        <div class="absolute -top-3 -right-3 sm:top-4 sm:right-8 brutal-sticker bg-animaux text-white rotate-right-md font-fredoka text-sm sm:text-base hidden sm:inline-block">
+            ⚡ 100% COOL & POP !
+        </div>
+        <div class="absolute bottom-3 right-4 sm:bottom-6 sm:right-16 brutal-sticker bg-alimentation text-ink rotate-left text-xs sm:text-sm hidden sm:inline-block">
+            🐶 ADOPTIONS ÉTHIQUES
+        </div>
+
+        <div class="max-w-3xl space-y-4">
+            <div class="inline-flex items-center gap-2 bg-card border-2 border-ink px-3 py-1 rounded-full text-xs font-bold font-fredoka shadow-[2px_2px_0px_#121212]">
+                <span>🦴</span> NOUVELLE COLLECTION 2026 DISPONIBLE
+            </div>
+            
+            <h1 class="text-4xl sm:text-6xl font-extrabold text-ink leading-tight">
+                L'animalerie la plus <span class="bg-card px-2 border-[3px] border-ink inline-block rotate-left shadow-brutal text-animaux">WOUAF</span> du Web !
+            </h1>
+
+            <p class="text-base sm:text-lg font-semibold text-gray-800 leading-relaxed max-w-2xl">
+                Nourriture saine, jouets indestructibles, looks déjantés et adorables boules de poils en attente d'une famille pour la vie.
+            </p>
+
+            <div class="flex flex-wrap items-center gap-3 pt-2">
+                <a href="#catalogue-grid" class="brutal-btn brutal-btn-primary text-base py-3 px-6 shadow-brutal-hover">
+                    Découvrir les pépites ➔
+                </a>
+                <a href="{{ path('app_catalogue', {'categorie': 'animaux'}) }}" class="brutal-btn brutal-btn-white text-base py-3 px-6">
+                    🐾 Adopter un animal
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Filters & Search Section -->
+    <section id="catalogue-grid" class="mb-8 space-y-6">
+        
+        <!-- Category Filter Pills -->
+        <div class="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-none">
+            <a 
+                href="{{ path('app_catalogue', {'q': q, 'tri': tri}) }}" 
+                class="filter-pill {% if not categorieActive %}active bg-ink text-white{% endif %}"
+            >
+                <span>🌟</span> Tous nos trésors
+            </a>
+            {% for cat in categories %}
+                <a 
+                    href="{{ path('app_catalogue', {'categorie': cat.urlSimplifiee, 'q': q, 'tri': tri}) }}" 
+                    class="filter-pill {% if categorieActive and categorieActive.id == cat.id %}active border-ink{% endif %}"
+                    style="{% if categorieActive and categorieActive.id == cat.id %}background-color: {{ cat.couleurHex }}; color: #121212;{% endif %}"
+                >
+                    <span class="w-3.5 h-3.5 rounded-full border border-ink" style="background-color: {{ cat.couleurHex }};"></span>
+                    {{ cat.nom }}
+                </a>
+            {% endfor %}
+        </div>
+
+        <!-- Search & Sorting Bar -->
+        <div class="brutal-card bg-card p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+            <!-- Search input -->
+            <form action="{{ path('app_catalogue') }}" method="GET" class="flex-1 flex gap-2">
+                {% if categorieActive %}
+                    <input type="hidden" name="categorie" value="{{ categorieActive.urlSimplifiee }}">
+                {% endif %}
+                {% if tri %}
+                    <input type="hidden" name="tri" value="{{ tri }}">
+                {% endif %}
+                <div class="relative flex-1">
+                    <input 
+                        type="text" 
+                        name="q" 
+                        value="{{ q }}" 
+                        placeholder="Rechercher par nom, mot-clé, race..." 
+                        class="brutal-input text-sm py-2.5 pl-3.5 pr-8"
+                    >
+                    {% if q %}
+                        <a href="{{ path('app_catalogue', {'categorie': categorieActive ? categorieActive.urlSimplifiee : null, 'tri': tri}) }}" class="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-gray-500 hover:text-ink text-xs">
+                            ✕
+                        </a>
+                    {% endif %}
+                </div>
+                <button type="submit" class="brutal-btn brutal-btn-yellow py-2.5 px-4 text-sm font-bold">
+                    Rechercher
+                </button>
+            </form>
+
+            <!-- Sorting Select -->
+            <form action="{{ path('app_catalogue') }}" method="GET" class="flex items-center gap-2">
+                {% if categorieActive %}
+                    <input type="hidden" name="categorie" value="{{ categorieActive.urlSimplifiee }}">
+                {% endif %}
+                {% if q %}
+                    <input type="hidden" name="q" value="{{ q }}">
+                {% endif %}
+                <label for="tri-select" class="text-xs font-bold uppercase font-fredoka text-gray-700 whitespace-nowrap">
+                    Trier par :
+                </label>
+                <select 
+                    id="tri-select" 
+                    name="tri" 
+                    onchange="this.form.submit()" 
+                    class="brutal-input text-xs font-bold py-2 px-3 pr-8 bg-card cursor-pointer"
+                >
+                    <option value="" {% if not tri %}selected{% endif %}>Nouveautés & Coups de cœur</option>
+                    <option value="prix_asc" {% if tri == 'prix_asc' %}selected{% endif %}>Prix : du plus bas au plus haut</option>
+                    <option value="prix_desc" {% if tri == 'prix_desc' %}selected{% endif %}>Prix : du plus haut au plus bas</option>
+                </select>
+            </form>
+        </div>
+    </section>
+
+    <!-- Articles Grid -->
+    <section>
+        {% if articles|length == 0 %}
+            <div class="brutal-card bg-card p-12 text-center max-w-lg mx-auto space-y-4">
+                <div class="text-6xl animate-bounce">🔍</div>
+                <h3 class="font-fredoka text-2xl font-bold">Oups, aucun article trouvé !</h3>
+                <p class="text-sm font-semibold text-gray-600">
+                    Essayez de modifier votre recherche ou de choisir une autre catégorie.
+                </p>
+                <a href="{{ path('app_catalogue') }}" class="brutal-btn brutal-btn-yellow inline-block text-sm">
+                    Réinitialiser les filtres
+                </a>
+            </div>
+        {% else %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for article in articles %}
+                    <div class="brutal-card bg-card flex flex-col justify-between overflow-hidden group">
+                        
+                        <!-- Top Image & Badges -->
+                        <div class="relative aspect-4/3 overflow-hidden border-b-[3px] border-ink bg-gray-100">
+                            <img 
+                                src="{{ article.image }}" 
+                                alt="{{ article.nom }}" 
+                                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                loading="lazy"
+                            >
+
+                            <!-- Badge Sticker -->
+                            {% if article.badge %}
+                                <div class="absolute top-3 left-3 brutal-sticker {% if loop.index is odd %}rotate-left{% else %}rotate-right{% endif %} text-xs font-bold text-white shadow-brutal" style="background-color: {{ article.animal ? '#FF6B6B' : (article.badge == 'BIO' ? '#4ECDC4' : '#FF9F43') }};">
+                                    {{ article.badge }}
+                                </div>
+                            {% endif %}
+
+                            <!-- Category Pill -->
+                            <div class="absolute bottom-3 right-3 brutal-badge text-ink shadow-[2px_2px_0px_#121212]" style="background-color: {{ article.categorie.couleurHex }};">
+                                {{ article.categorie.nom }}
+                            </div>
+                        </div>
+
+                        <!-- Card Body -->
+                        <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+                            <div>
+                                <!-- If Animal, quick veterinary facts -->
+                                {% if article.animal %}
+                                    <div class="mb-2 flex items-center gap-2 text-xs font-bold text-gray-700 bg-red-50 border border-animaux rounded-lg px-2.5 py-1">
+                                        <span>🩺</span>
+                                        <span>{{ article.animal.espece }} • {{ article.animal.race }} ({{ article.animal.sexe }})</span>
+                                    </div>
+                                {% endif %}
+
+                                <h3 class="font-fredoka text-xl font-bold text-ink group-hover:text-animaux transition-colors line-clamp-1">
+                                    <a href="{{ path('app_article_detail', {'urlSimplifiee': article.urlSimplifiee}) }}">
+                                        {{ article.nom }}
+                                    </a>
+                                </h3>
+
+                                <p class="text-sm text-gray-600 line-clamp-2 mt-1.5 font-medium leading-relaxed">
+                                    {{ article.description }}
+                                </p>
+                            </div>
+
+                            <!-- Footer Price & Action -->
+                            <div class="pt-3 border-t-2 border-dashed border-gray-200 flex items-center justify-between gap-2">
+                                <div>
+                                    <span class="block text-[11px] font-bold text-gray-500 uppercase font-fredoka">
+                                        {% if article.animal %}Frais d'adoption{% else %}Prix TTC{% endif %}
+                                    </span>
+                                    <span class="price-tag text-2xl font-bold text-ink">
+                                        {{ article.prix|prix_euro }}
+                                    </span>
+                                </div>
+
+                                <div class="flex items-center gap-2">
+                                    <a 
+                                        href="{{ path('app_article_detail', {'urlSimplifiee': article.urlSimplifiee}) }}" 
+                                        class="brutal-btn brutal-btn-white py-2 px-3 text-xs"
+                                        title="Voir le détail"
+                                    >
+                                        👀 Détails
+                                    </a>
+
+                                    {% if article.animal %}
+                                        <a 
+                                            href="{{ path('app_panier_ajouter', {'id': article.id}) }}" 
+                                            class="brutal-btn brutal-btn-primary py-2 px-3 text-xs ajax-add-btn"
+                                            data-id="{{ article.id }}"
+                                        >
+                                            🐾 Adopter
+                                        </a>
+                                    {% else %}
+                                        <a 
+                                            href="{{ path('app_panier_ajouter', {'id': article.id}) }}" 
+                                            class="brutal-btn brutal-btn-mint py-2 px-3 text-xs ajax-add-btn"
+                                            data-id="{{ article.id }}"
+                                        >
+                                            🛒 + Panier
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </section>
+
+    <!-- AJAX Add to Cart handler -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.ajax-add-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    const url = btn.getAttribute('href');
+                    
+                    try {
+                        const res = await fetch(url, {
+                            headers: { 'Accept': 'application/json' }
+                        });
+                        if (res.ok) {
+                            const data = await res.json();
+                            if (window.refreshCartUI) {
+                                window.refreshCartUI(data.count, data.drawerHtml);
+                            }
+                            if (window.openCartDrawer) {
+                                window.openCartDrawer();
+                            }
+                        } else {
+                            window.location.href = url;
+                        }
+                    } catch (err) {
+                        window.location.href = url;
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}

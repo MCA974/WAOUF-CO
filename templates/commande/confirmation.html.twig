@@ -1,0 +1,118 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Confirmation de commande - WAOUF & CO !{% endblock %}
+
+{% block body %}
+    <div class="max-w-2xl mx-auto space-y-8 text-center">
+        
+        <!-- Celebration Badge -->
+        <div class="inline-block brutal-sticker bg-loisirs text-ink rotate-left-md text-base sm:text-lg font-bold font-fredoka shadow-brutal">
+            🎉 COMMANDE CONFIRMÉE AVEC SUCCÈS !
+        </div>
+
+        <div class="brutal-card bg-card p-8 sm:p-10 border-[3px] border-ink space-y-6 text-left">
+            
+            <div class="border-b-2 border-ink pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                    <span class="text-xs font-bold text-gray-500 uppercase font-fredoka block">Référence de commande</span>
+                    <h2 class="font-fredoka text-2xl sm:text-3xl font-extrabold text-ink">{{ commande.reference }}</h2>
+                </div>
+
+                <div>
+                    {% if commande.statut == 'VALIDATION_ADOPTION' %}
+                        <span class="brutal-sticker bg-animaux text-white rotate-right text-xs">
+                            🐾 VALIDATION ADOPTION
+                        </span>
+                    {% elseif commande.statut == 'PAYEE' %}
+                        <span class="brutal-sticker bg-alimentation text-ink rotate-right text-xs">
+                            ✅ PAYÉE & VALIDÉE
+                        </span>
+                    {% elseif commande.statut == 'EXPEDIEE' %}
+                        <span class="brutal-sticker bg-fashion text-ink rotate-right text-xs">
+                            🚚 EXPÉDIÉE
+                        </span>
+                    {% else %}
+                        <span class="brutal-sticker bg-sticker text-white text-xs">
+                            {{ commande.statut }}
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Adoption notice if needed -->
+            {% if commande.aUneAdoption %}
+                <div class="bg-red-50 border-2 border-animaux rounded-lg p-4 space-y-2">
+                    <h4 class="font-fredoka font-bold text-sm text-animaux flex items-center gap-1.5">
+                        <span>🩺</span> Dossier d'Adoption en cours de traitement
+                    </h4>
+                    <p class="text-xs text-gray-700 leading-relaxed font-medium">
+                        Un membre de notre équipe va prendre contact avec vous sous 24h ouvrées afin de valider ensemble le certificat d'engagement et organiser la première rencontre avec votre futur compagnon.
+                    </p>
+                </div>
+            {% endif %}
+
+            <!-- Order Lines List -->
+            <div class="space-y-3">
+                <h4 class="font-fredoka font-bold text-sm uppercase text-gray-700">Détail des articles commandés :</h4>
+                <div class="space-y-2">
+                    {% for ligne in commande.lignes %}
+                        <div class="flex items-center justify-between text-sm py-2 border-b border-gray-100">
+                            <div>
+                                <span class="font-bold text-ink">{{ ligne.quantite }}x</span>
+                                <span class="font-medium text-gray-800">{{ ligne.article.nom }}</span>
+                                {% if ligne.optionChoisie %}
+                                    <span class="text-xs text-gray-500">({{ ligne.optionChoisie }})</span>
+                                {% endif %}
+                                {% if ligne.article.animal %}
+                                    <span class="text-xs font-bold text-animaux ml-1">🐾 (Adoption)</span>
+                                {% endif %}
+                            </div>
+                            <span class="font-fredoka font-bold text-ink">
+                                {{ ligne.totalEnEuros|number_format(2, ',', ' ') }} €
+                            </span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Delivery & Financial Recap -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                <div class="bg-gray-50 border-2 border-ink rounded-lg p-3 text-xs">
+                    <span class="font-fredoka font-bold text-gray-500 uppercase block mb-1">Adresse de livraison</span>
+                    <p class="font-medium whitespace-pre-line text-ink">{{ commande.adresseLivraison }}</p>
+                </div>
+
+                <div class="bg-gray-50 border-2 border-ink rounded-lg p-3 text-xs space-y-1 font-medium">
+                    <div class="flex justify-between text-gray-600">
+                        <span>Frais de livraison :</span>
+                        <span>{{ commande.fraisLivraisonEnEuros == 0 ? 'Offert' : commande.fraisLivraisonEnEuros|number_format(2, ',', ' ') ~ ' €' }}</span>
+                    </div>
+                    {% if commande.codePromo %}
+                        <div class="flex justify-between text-green-700 font-bold">
+                            <span>Code Promo :</span>
+                            <span>{{ commande.codePromo }}</span>
+                        </div>
+                    {% endif %}
+                    <div class="border-t border-gray-300 pt-1 flex justify-between font-fredoka font-bold text-sm text-ink">
+                        <span>Montant Total :</span>
+                        <span class="text-animaux">{{ commande.montantTotalEnEuros|number_format(2, ',', ' ') }} €</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="pt-4 flex flex-col sm:flex-row gap-3">
+                <a href="{{ path('app_catalogue') }}" class="brutal-btn brutal-btn-yellow flex-1 text-center py-3 text-sm">
+                    🏠 Retour à l'accueil
+                </a>
+                {% if app.user %}
+                    <a href="{{ path('app_account') }}" class="brutal-btn brutal-btn-white flex-1 text-center py-3 text-sm">
+                        👤 Voir dans Mon Compte
+                    </a>
+                {% endif %}
+            </div>
+
+        </div>
+
+    </div>
+{% endblock %}

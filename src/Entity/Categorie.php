@@ -18,8 +18,11 @@ class Categorie
     #[ORM\Column(length: 100)]
     private ?string $nom = null;
 
-    #[ORM\Column(length: 120)]
+    #[ORM\Column(length: 120, unique: true)]
     private ?string $urlSimplifiee = null;
+
+    #[ORM\Column(length: 10)]
+    private ?string $couleurHex = null;
 
     /**
      * @var Collection<int, Article>
@@ -61,6 +64,18 @@ class Categorie
         return $this;
     }
 
+    public function getCouleurHex(): ?string
+    {
+        return $this->couleurHex;
+    }
+
+    public function setCouleurHex(string $couleurHex): static
+    {
+        $this->couleurHex = $couleurHex;
+
+        return $this;
+    }
+
     /**
      * @return Collection<int, Article>
      */
@@ -82,12 +97,16 @@ class Categorie
     public function removeArticle(Article $article): static
     {
         if ($this->articles->removeElement($article)) {
-            // set the owning side to null (unless already changed)
             if ($article->getCategorie() === $this) {
                 $article->setCategorie(null);
             }
         }
 
         return $this;
+    }
+
+    public function __toString(): string
+    {
+        return (string) $this->nom;
     }
 }

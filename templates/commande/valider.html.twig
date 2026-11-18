@@ -1,0 +1,161 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Validation de la commande - WAOUF & CO !{% endblock %}
+
+{% block body %}
+    <div class="max-w-4xl mx-auto space-y-8">
+        
+        <!-- Header -->
+        <div class="border-b-[3px] border-ink pb-4">
+            <h1 class="font-fredoka text-3xl sm:text-4xl font-bold text-ink">
+                Finaliser votre Commande 📦
+            </h1>
+            <p class="text-sm font-semibold text-gray-600">
+                Vérifiez vos articles et renseignez vos informations de livraison.
+            </p>
+        </div>
+
+        <!-- Special Banner if Animal is present -->
+        {% if totaux.hasAnimal %}
+            <div class="brutal-card bg-animaux text-white p-5 border-[3px] border-ink space-y-2">
+                <div class="flex items-center gap-2 font-fredoka font-bold text-lg">
+                    <span class="text-2xl">🐾</span>
+                    <span>ATTENTION : Cette commande contient l'adoption d'un animal vivant !</span>
+                </div>
+                <p class="text-sm text-red-50 font-medium leading-relaxed">
+                    Pour garantir le bien-être de notre compagnon, votre commande passera sous le statut 
+                    <strong class="underline decoration-2">VALIDATION_ADOPTION</strong>. Notre équipe vétérinaire et éducative 
+                    prendra contact avec vous sous 24h pour valider votre certificat d'engagement et organiser la rencontre.
+                </p>
+            </div>
+        {% endif %}
+
+        <form action="{{ path('app_commande_valider') }}" method="POST" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            <!-- Left: Shipping Information -->
+            <div class="lg:col-span-7 space-y-6">
+                
+                <div class="brutal-card bg-card p-6 border-[3px] border-ink space-y-4">
+                    <h3 class="font-fredoka text-xl font-bold text-ink flex items-center gap-2 border-b-2 border-ink pb-2">
+                        <span>📍</span> Coordonnées & Adresse de Livraison
+                    </h3>
+
+                    {% if not user %}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="nom_client" class="block font-fredoka font-bold text-xs uppercase text-gray-700 mb-1">Nom Complet *</label>
+                                <input type="text" id="nom_client" name="nom_client" required placeholder="Camille Dupont" class="brutal-input text-sm">
+                            </div>
+                            <div>
+                                <label for="email_client" class="block font-fredoka font-bold text-xs uppercase text-gray-700 mb-1">Email *</label>
+                                <input type="email" id="email_client" name="email_client" required placeholder="camille@exemple.fr" class="brutal-input text-sm">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="telephone_client" class="block font-fredoka font-bold text-xs uppercase text-gray-700 mb-1">Téléphone *</label>
+                            <input type="tel" id="telephone_client" name="telephone_client" required placeholder="06 12 34 56 78" class="brutal-input text-sm">
+                        </div>
+                    {% else %}
+                        <div class="bg-gray-50 border-2 border-ink rounded-lg p-3 text-sm">
+                            <p>Client connecté : <strong>{{ user.prenom }} {{ user.nom }}</strong> ({{ user.email }})</p>
+                            <p class="text-xs text-gray-600">Téléphone : {{ user.telephone }}</p>
+                        </div>
+                    {% endif %}
+
+                    <div>
+                        <label for="adresse_livraison" class="block font-fredoka font-bold text-xs uppercase text-gray-700 mb-1">
+                            Adresse postale complète de livraison *
+                        </label>
+                        <textarea 
+                            id="adresse_livraison" 
+                            name="adresse_livraison" 
+                            rows="3" 
+                            required 
+                            placeholder="12 rue des Petits Chiens, 75011 Paris, Code porte B12..." 
+                            class="brutal-input text-sm"
+                        >{{ user ? user.adresse : '' }}</textarea>
+                    </div>
+                </div>
+
+                <!-- Payment simulation box -->
+                <div class="brutal-card bg-loisirs p-5 border-[3px] border-ink space-y-3">
+                    <div class="flex items-center gap-2 font-fredoka font-bold text-base">
+                        <span>💳</span>
+                        <span>Mode de Règlement Sécurisé</span>
+                    </div>
+                    <p class="text-xs text-gray-800 font-medium">
+                        Paiement sécurisé par carte bancaire (protocole 3D Secure / TLS 1.3). 
+                        En cliquant sur "Confirmer et Payer", votre commande sera immédiatement enregistrée et les stocks décrémentés en temps réel.
+                    </p>
+                    <div class="flex gap-2 text-xl">
+                        <span>💳</span> <span>🪙</span> <span>🔒</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right: Order Items Recap & Submit -->
+            <div class="lg:col-span-5 space-y-4">
+                <div class="brutal-card bg-card p-6 border-[3px] border-ink space-y-4 text-sm font-semibold">
+                    <h3 class="font-fredoka text-xl font-bold border-b-2 border-ink pb-2">
+                        Articles ({{ totaux.nombreArticles }})
+                    </h3>
+
+                    <div class="space-y-3 max-h-60 overflow-y-auto pr-1">
+                        {% for item in elements %}
+                            <div class="flex items-center justify-between text-xs gap-2">
+                                <div class="truncate">
+                                    <strong class="text-ink">{{ item.quantite }}x</strong> {{ item.article.nom }}
+                                    {% if item.option %}<span class="text-gray-500">({{ item.option }})</span>{% endif %}
+                                </div>
+                                <span class="font-fredoka font-bold text-ink whitespace-nowrap">
+                                    {{ item.totalLigne|prix_euro }}
+                                </span>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="border-t-2 border-dashed border-gray-300 pt-3 space-y-2">
+                        <div class="flex justify-between text-gray-600 text-xs">
+                            <span>Sous-total TTC</span>
+                            <span>{{ totaux.sousTotalTTC|prix_euro }}</span>
+                        </div>
+
+                        {% if totaux.montantRemise > 0 %}
+                            <div class="flex justify-between text-animaux text-xs font-bold">
+                                <span>Remise (-10%)</span>
+                                <span>-{{ totaux.montantRemise|prix_euro }}</span>
+                            </div>
+                        {% endif %}
+
+                        <div class="flex justify-between text-gray-600 text-xs">
+                            <span>Frais de port</span>
+                            <span>
+                                {% if totaux.fraisPort == 0 %}
+                                    <strong class="text-green-700 uppercase">Offert</strong>
+                                {% else %}
+                                    {{ totaux.fraisPort|prix_euro }}
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        <div class="border-t-[3px] border-ink pt-3 flex justify-between items-baseline font-fredoka text-ink text-lg font-bold">
+                            <span>TOTAL À PAYER</span>
+                            <span class="text-2xl text-animaux">{{ totaux.totalTTC|prix_euro }}</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="brutal-btn brutal-btn-primary w-full py-4 text-center text-lg block shadow-brutal-hover">
+                        🎉 Confirmer et Payer ({{ totaux.totalTTC|prix_euro }})
+                    </button>
+                    
+                    <a href="{{ path('app_panier') }}" class="block text-center text-xs text-gray-500 font-bold hover:underline">
+                        Modifier le panier
+                    </a>
+                </div>
+            </div>
+
+        </form>
+
+    </div>
+{% endblock %}
